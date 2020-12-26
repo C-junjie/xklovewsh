@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html onselect="return false" ;lang="en" ;draggable="false">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            width: 100%;
+            height: 100vh;
+            background: url('images/snow_bgi.jpg') no-repeat;
+            background-size: 100% 100%;
+            perspective: 2000px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .photo {
+            /* margin-top: 10%; */
+            position: relative;
+            width: 150px;
+            height: 150px;
+            transform: rotateX(-15deg) rotateY(0deg);
+            transform-style: preserve-3d;
+        }
+
+        .photo .showImg {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            user-select: none;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px #fff;
+            -webkit-box-reflect: below 10px -webkit-linear-gradient(transparent 40%, rgba(0, 0, 0, .6));
+        }
+
+        .fullImg {
+            box-sizing: border-box;
+            position: fixed;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            padding: 0 15%;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, .7);
+            align-items: center;
+            justify-content: center;
+            display: none;
+        }
+
+        .fullImg img {
+            height: 100%;
+        }
+
+        #audio {
+            position: fixed;
+            left: 50%;
+            top: 0;
+            transform: translate(-50%, 0);
+            outline: none;
+        }
+    </style>
+    <style>
+        #leafContainer {
+            position: fixed;
+            z-index: -1;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            overflow: hidden;
+        }
+
+
+        #leafContainer>div {
+            position: absolute;
+            max-width: 100px;
+            max-height: 100px;
+            -webkit-animation-iteration-count: infinite, infinite;
+            -webkit-animation-direction: normal, normal;
+            -webkit-animation-timing-function: linear, ease-in;
+        }
+
+
+        #leafContainer>div>img {
+            width: 100%;
+            -webkit-animation-iteration-count: infinite;
+            -webkit-animation-direction: alternate;
+            -webkit-animation-timing-function: ease-in-out;
+            -webkit-transform-origin: 50% -100%;
+        }
+
+        @-webkit-keyframes fade {
+            0% {
+                opacity: 1;
+            }
+
+            95% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0;
+            }
+        }
+
+        @-webkit-keyframes drop {
+            0% {
+                -webkit-transform: translate(0px, -50px);
+            }
+
+            100% {
+                -webkit-transform: translate(0px, 1000px);
+            }
+        }
+
+        @-webkit-keyframes clockwiseSpin {
+            0% {
+                -webkit-transform: rotate(-50deg);
+            }
+
+            100% {
+                -webkit-transform: rotate(50deg);
+            }
+        }
+
+        @-webkit-keyframes counterclockwiseSpinAndFlip {
+            0% {
+                -webkit-transform: scale(-1, 1) rotate(50deg);
+            }
+
+            100% {
+                -webkit-transform: scale(-1, 1) rotate(-50deg);
+            }
+        }
+    </style>
+</head>
+
+<body draggable="false">
+    <div id="leafContainer">
+    </div>
+    <div class="photo" draggable="false">
+        <img class="showImg" src="images/01.jpg" draggable="false" />
+        <img class="showImg" src="images/02.jpg" draggable="false" />
+        <img class="showImg" src="images/03.jpg" draggable="false" />
+        <img class="showImg" src="images/04.jpg" draggable="false" />
+        <!-- <img class="showImg" src="images/05.jpg" draggable="false" /> -->
+        <!-- <img class="showImg" src="images/06.jpg" draggable="false" /> -->
+        <img class="showImg" src="images/07.jpg" draggable="false" />
+        <img class="showImg" src="images/08.jpg" draggable="false" />
+        <img class="showImg" src="images/09.jpg" draggable="false" />
+        <img class="showImg" src="images/10.jpg" draggable="false" />
+        <img class="showImg" src="images/11.jpg" draggable="false" />
+        <img class="showImg" src="images/12.jpg" draggable="false" />
+        <img class="showImg" src="images/13.jpg" draggable="false" />
+        <img class="showImg" src="images/14.jpg" draggable="false" />
+    </div>
+    <div class="fullImg">
+        <img src="images/14.jpg">
+    </div>
+    <audio id="audio" controls>
+        <source src="audios/Gifty.mp3" type="audio/mpeg">
+    </audio>
+</body>
+
+</html>
+<script>
+    var imgArr = document.querySelectorAll(".showImg");
+    var turnBox = document.querySelector(".photo");
+    var fullBox = document.querySelector(".fullImg")
+    var fullImg = document.querySelector(".fullImg img")
+    var targetDom;
+    var trunTimer;
+    var nowX = 0;
+    var nowY = 0;
+    var clickIndex = 0;
+
+    var Deg = 360 / imgArr.length;
+    var moveZ = 360
+    window.onload = function () {
+        init()
+        for (let i = 0; i < imgArr.length; i++) {
+            imgArr[i].style.transform = 'rotateY(' + Deg * i + 'deg) translateZ('+moveZ+'px)';
+            imgArr[i].style.transition = '1s ' + (imgArr.length - i) * 0.1 + 's';
+            imgArr[i].addEventListener("click", (e) => { handle3DImg(e, i) })
+        }
+
+        fullBox.addEventListener("click", handleFullImg)
+
+        clearInterval(trunTimer)
+        trunTimer = setInterval(() => {
+            nowX += 1
+            turnBox.style.transform = 'rotateX(-15deg) rotateY(' + (nowX) * 0.05 + 'deg)';
+        }, 0)
+
+    };
+
+    function handle3DImg(e, i) {
+        targetDom = e.target
+        clickIndex = i
+        clearInterval(trunTimer)
+        fullImg.src = targetDom.src
+        fullBox.style.display = "flex"
+        targetDom.style.transition = 'none'
+        targetDom.style.transform = 'none'
+    }
+
+    function handleFullImg() {
+        fullBox.style.display = "none"
+        targetDom.style.transition = '1s ' + (imgArr.length - clickIndex) * 0.1 + 's'
+        targetDom.style.transform = 'rotateY(' + Deg * clickIndex + 'deg) translateZ('+moveZ+'px)'
+        trunTimer = setInterval(() => {
+            nowX += 1
+            turnBox.style.transform = 'rotateX(-15deg) rotateY(' + (nowX) * 0.05 + 'deg)';
+        }, 0)
+    }
+</script>
+<script>
+    const NUMBER_OF_LEAVES = 100;
+    function init() {
+        let container = document.getElementById('leafContainer');
+        for (let i = 0; i < NUMBER_OF_LEAVES; i++) {
+            container.appendChild(createALeaf());
+        }
+    }
+    function randomInteger(low, high) {
+        return low + Math.floor(Math.random() * (high - low));
+    }
+    function randomFloat(low, high) {
+        return low + Math.random() * (high - low);
+    }
+    function pixelValue(value) {
+        return value + 'px';
+    }
+    function durationValue(value) {
+        return value + 's';
+    }
+    function createALeaf() {
+        let leafDiv = document.createElement('div');
+        let image = document.createElement('img');
+        image.style.draggable = "false"
+        image.src = 'images/snow' + randomInteger(1, 5) + '.png';
+        leafDiv.style.draggable = "false"
+        leafDiv.style.top = "-20px";
+        leafDiv.style.left = pixelValue(randomInteger(0, 2000));
+        let spinAnimationName = (Math.random() < 0.5) ? 'clockwiseSpin' : 'counterclockwiseSpinAndFlip';
+        leafDiv.style.webkitAnimationName = 'fade, drop';
+        image.style.webkitAnimationName = spinAnimationName;
+        let fadeAndDropDuration = durationValue(randomFloat(5, 11));
+        let spinDuration = durationValue(randomFloat(4, 8));
+        leafDiv.style.webkitAnimationDuration = fadeAndDropDuration + ', ' + fadeAndDropDuration;
+        let leafDelay = durationValue(randomFloat(0, 5));
+        leafDiv.style.webkitAnimationDelay = leafDelay + ', ' + leafDelay;
+        image.style.webkitAnimationDuration = spinDuration;
+        leafDiv.appendChild(image);
+        return leafDiv;
+    }
+
+</script>
